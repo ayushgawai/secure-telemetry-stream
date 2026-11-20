@@ -1,0 +1,15 @@
+target/
+*.class
+*.jar
+!mvnw
+.idea/
+.vscode/
+*.iml
+.DS_Store
+__pycache__/
+tools/
+data/*.jsonl
+bench-results.txt
+api/api
+*.test
+coverage.out

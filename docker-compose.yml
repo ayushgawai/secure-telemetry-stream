@@ -1,0 +1,35 @@
+services:
+  zookeeper: {image: confluentinc/cp-zookeeper:7.6.1, environment: {ZOOKEEPER_CLIENT_PORT: 2181}}
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on: [zookeeper]
+    ports: ["9092:9092"]
+    environment: {KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181, KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092, KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1, KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1, KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1}
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    ports: ["8123:8123", "9000:9000"]
+    volumes: ["./store/clickhouse.sql:/docker-entrypoint-initdb.d/init.sql"]
+  redis: {image: redis:7-alpine, ports: ["6379:6379"]}
+  flink-jobmanager:
+    image: flink:1.19.1-scala_2.12-java17
+    command: jobmanager
+    environment: ["JOB_MANAGER_RPC_ADDRESS=flink-jobmanager"]
+  flink-taskmanager:
+    image: flink:1.19.1-scala_2.12-java17
+    command: taskmanager
+    depends_on: [flink-jobmanager]
+    environment: ["JOB_MANAGER_RPC_ADDRESS=flink-jobmanager"]
+  api:
+    build: ./api
+    ports: ["8080:8080", "50051:50051"]
+    environment: {STS_JWT_SECRET: dev-secret, REDIS_ADDR: "redis:6379", STS_DATA_FILE: ""}
+    depends_on: [redis, clickhouse]
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    volumes: ["./observability/prometheus.yml:/etc/prometheus/prometheus.yml"]
+    ports: ["9090:9090"]
+  grafana:
+    image: grafana/grafana:11.0.0
+    ports: ["3000:3000"]
+    volumes: ["./observability/grafana-dashboard.json:/var/lib/grafana/dashboards/sts.json"]
+    environment: {GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/sts.json}

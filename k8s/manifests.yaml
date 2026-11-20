@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sts-api}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: sts-api}}
+  template:
+    metadata: {labels: {app: sts-api}}
+    spec:
+      containers:
+        - name: api
+          image: secure-telemetry-stream-api:latest
+          ports: [{containerPort: 8080}, {containerPort: 50051}]
+          env:
+            - {name: STS_JWT_SECRET, valueFrom: {secretKeyRef: {name: sts, key: jwt-secret}}}
+            - {name: REDIS_ADDR, value: "redis:6379"}
+          resources: {requests: {cpu: 250m, memory: 256Mi}, limits: {cpu: "1", memory: 512Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: sts-api}
+spec: {selector: {app: sts-api}, ports: [{name: http, port: 8080}, {name: grpc, port: 50051}]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sts-generator}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: sts-generator}}
+  template:
+    metadata: {labels: {app: sts-generator}}
+    spec:
+      containers: [{name: gen, image: secure-telemetry-stream-pipeline:latest, args: ["kafka:9092", "100000"]}]

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package sts.v1;
+option go_package = "sts/api/pb;pb";
+service TelemetryService {
+  rpc ListEvents(ListRequest) returns (ListResponse);
+  rpc ListIncidents(ListRequest) returns (IncidentResponse);
+  rpc StreamIncidents(ListRequest) returns (stream Incident);
+}
+message ListRequest { string tenant = 1; string cursor = 2; int32 limit = 3; }
+message Event { string event_id = 1; string tenant = 2; string user = 3; string source = 4; string app = 5; string category = 6; int64 bytes_out = 7; string verdict = 8; int64 ts = 9; }
+message ListResponse { repeated Event events = 1; string next_cursor = 2; }
+message Incident { string user = 1; string tenant = 2; double confidence = 3; string summary = 4; int64 ts = 5; repeated string signals = 6; }
+message IncidentResponse { repeated Incident incidents = 1; string next_cursor = 2; }

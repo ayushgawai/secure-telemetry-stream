@@ -1,0 +1,3 @@
+replicaCount: 2
+image: {repository: secure-telemetry-stream-api, tag: latest}
+redisAddr: "redis:6379"

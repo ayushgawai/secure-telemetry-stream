@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info: {title: Secure Telemetry Stream API, version: 2.0.0}
+servers: [{url: http://localhost:8080}]
+security: [{bearerAuth: []}]
+paths:
+  /healthz:
+    get: {security: [], responses: {'200': {description: ok}}}
+  /v1/events:
+    get:
+      parameters:
+        - {name: tenant, in: query, schema: {type: string}}
+        - {name: cursor, in: query, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, default: 50}}
+      responses: {'200': {description: events}, '401': {description: unauthorized}, '403': {description: tenant scope}, '429': {description: rate limited}}
+  /v1/incidents:
+    get:
+      parameters: [{name: tenant, in: query, schema: {type: string}}, {name: cursor, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer}}]
+      responses: {'200': {description: incidents}, '401': {description: unauthorized}}
+  /v2/events:
+    get:
+      parameters: [{name: tenant, in: query, schema: {type: string}}, {name: cursor, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer}}]
+      responses: {'200': {description: events v2 envelope}}
+  /v2/incidents:
+    get:
+      parameters: [{name: tenant, in: query, schema: {type: string}}, {name: cursor, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer}}]
+      responses: {'200': {description: incidents v2 envelope}}
+components:
+  securitySchemes: {bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}}

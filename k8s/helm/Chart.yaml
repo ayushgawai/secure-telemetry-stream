@@ -1,0 +1,4 @@
+apiVersion: v2
+name: secure-telemetry-stream
+version: 1.0.0
+description: Kafka and Flink streaming over security telemetry with anomaly detection, correlation and REST/gRPC APIs
